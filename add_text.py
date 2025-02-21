@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+
 from PIL import Image
 
 # Словарь для перевода месяцев
@@ -65,8 +66,9 @@ def get_image_date_from_filename(image_path):
         raise Exception(f"Формат названия файла не соответствует ожидаемому: {filename}")
 
 
-def mergeTextAndImage(text, timeline, clip, textYPos):
+def mergeTextAndImage(text, timeline, textYPos):
     # Создаем Fusion композицию для фото
+    clip = timeline.GetItemListInTrack("video", 1)[-1]
     timeline.CreateFusionClip([clip], 2.0)
     fu = resolve.Fusion()
     resolve.OpenPage('Fusion')
@@ -94,55 +96,22 @@ def mergeTextAndImage(text, timeline, clip, textYPos):
     return merge
 
 
-def create_month_title_clip(timeline, mediaPool, month_name):
-    print(f"Creating title for {month_name}")
-
-    # Импортируем изображение
-    temp_black = create_black_image()
-    mediaItem = mediaPool.ImportMedia(temp_black)
-    if not mediaItem:
-        raise Exception(f"Couldn't import image: {temp_black}")
-
-    # mediaItem.SetClipDuration(2 * 24)
-
-    # Добавляем клип в timeline
-    mediaPool.AppendToTimeline(mediaItem)
-
-    clip = timeline.GetItemListInTrack("video", 1)[-1]
-    # clip.SetProperty("Duration", 2.0)  # Длительность фото 2 секунды
-
-    # Создаем Fusion композицию для фото
-    merge = mergeTextAndImage(month_name, timeline, clip, 0.5)
-
-    return merge
-
-
-def process_image(image_file, mediaPool, timeline):
+def process_image(image_path, image_text, mediaPool, timeline, textYPos):
     # Обработка изображения
-    image_path = os.path.join(folder_path, image_file)
-    image_text = os.path.splitext(image_file)[0]
-    print(f"Processing: {image_file}")
+    print(f"Processing: {image_path}")
 
     # Импортируем изображение
-    mediaItem = mediaPool.ImportMedia(image_path)
-    if not mediaItem:
+    mediaItems = mediaPool.ImportMedia(image_path)
+    if not mediaItems:
         raise Exception(f"Couldn't import image: {image_path}")
-
-    # mediaItem[0].SetClipProperty("Duration", "48")
+    mediaItem = mediaItems[0]
     # mediaItem[0].SetClipProperty("Duration", "00:00:02:00")
 
     # Добавляем клип в timeline
     mediaPool.AppendToTimeline(mediaItem)
-    clip = timeline.GetItemListInTrack("video", 1)[-1]
-    clip_name = clip.GetName()
+    merge = mergeTextAndImage(image_text, timeline, textYPos)
 
-    # Длительность фото 2 секунды
-    # clip.SetProperty("Duration", duration_frames)
-
-    # clip.SetTimelineIn(0) # Начало клипа
-    # clip.SetTimelineOut(2 * frame_rate) # Конец клипа через 2 секунды
-
-    mergeTextAndImage(image_text, timeline, clip, 0.2)
+    return merge
 
 
 def process_images(folder_path, mediaPool):
@@ -162,13 +131,8 @@ def process_images(folder_path, mediaPool):
         image_files_with_dates.append((image_file, date))
     image_files_with_dates.sort(key=lambda x: x[1])
 
-    # frame_rate = 1
-    # frame_rate = timeline.GetSetting("timelineFrameRate")
-    # duration_frames = int(2.0 * frame_rate)
-
-    current_month = None
-
     # Обрабатываем каждое изображение
+    current_month = None
     for image_file, date in image_files_with_dates:
 
         month_eng = date.strftime("%B")  # Получаем название месяца на английском
@@ -178,12 +142,16 @@ def process_images(folder_path, mediaPool):
         if month != current_month:
             current_month = month
 
-            # Создаем заголовок месяца
-            title_clip = create_month_title_clip(timeline, mediaPool, month)
+            image_path = create_black_image()
+            image_text = month
+            title_clip = process_image(image_path, image_text, mediaPool, timeline, 0.5)
+
             if not title_clip:
                 raise Exception(f"Failed to create title for {month}")
 
-        process_image(image_file, mediaPool, timeline)
+        image_path = os.path.join(folder_path, image_file)
+        image_text = os.path.splitext(image_file)[0]
+        process_image(image_path, image_text, mediaPool, timeline, 0.2)
 
     print("Processing complete!")
 
@@ -196,21 +164,11 @@ def process_image_folder(folder_path):
 
     process_images(folder_path, mediaPool)
 
-    # defaultDuration = 2
-    # mediaFiles = mediaPool.GetRootFolder().GetSubFolders()[0].GetItems()
-    # Перебираем все медиафайлы
-    # for mediaFile in mediaFiles.values():
-    # Проверяем, является ли медиафайл изображением
-    #    if mediaFile.GetMediaType() == "image":
-    # Устанавливаем продолжительность изображения
-    #        mediaFile.SetClipDuration(defaultDuration * frame_rate)
-
-    # print("Продолжительность всех изображений в Media Pool установлена на", defaultDuration, "секунды.")
-
-    #temp_black = create_black_image()
-    #os.remove(temp_black)
+    # temp_black = create_black_image()
+    # os.remove(temp_black)
 
 
+# Нужно руками устанавливать стандартную длительность статического кадра через UI Davinci Resolve
 # Пример использования:
-folder_path = "D:/итоги года/2021-2023/2023/test"  # Укажите путь к вашей папке с фотографиями
-process_image_folder(folder_path)
+init_folder_path = "D:/итоги года/2021-2023/2023/test"  # Укажите путь к вашей папке с фотографиями
+process_image_folder(init_folder_path)
