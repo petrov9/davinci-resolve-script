@@ -66,7 +66,7 @@ def get_image_date_from_filename(image_path):
         raise Exception(f"Формат названия файла не соответствует ожидаемому: {filename}")
 
 
-def mergeTextAndImage(text, timeline, textYPos):
+def merge_text_and_image(text, timeline, text_y_pos):
     # Создаем Fusion композицию для фото
     clip = timeline.GetItemListInTrack("video", 1)[-1]
     timeline.CreateFusionClip([clip], 2.0)
@@ -75,47 +75,47 @@ def mergeTextAndImage(text, timeline, textYPos):
     comp = fu.GetCurrentComp()
 
     # Получаем MediaIn node
-    mediaIn = comp.ActiveTool()
+    media_in = comp.ActiveTool()
 
     # Добавляем Text+ node
     text_plus = comp.AddTool("TextPlus")
     text_plus.StyledText = text
     text_plus.FontSize = 50
-    text_plus.Center = (0.5, textYPos)  # Текст внизу
+    text_plus.Center = (0.5, text_y_pos)  # Текст внизу
 
     # Добавляем Merge node
     merge = comp.AddTool("Merge")
-    merge.Background = mediaIn.Output
+    merge.Background = media_in.Output
     merge.Foreground = text_plus.Output
 
     # Подключаем к MediaOut
-    mediaOut = comp.FindTool("MediaOut1")
-    if mediaOut:
-        mediaOut.Input = merge.Output
+    media_out = comp.FindTool("MediaOut1")
+    if media_out:
+        media_out.Input = merge.Output
 
     return merge
 
 
-def process_image(image_path, image_text, mediaPool, timeline, textYPos):
+def process_image(image_path, image_text, media_pool, timeline, text_y_pos):
     # Обработка изображения
     print(f"Processing: {image_path}")
 
     # Импортируем изображение
-    mediaItems = mediaPool.ImportMedia(image_path)
-    if not mediaItems:
+    media_items = media_pool.ImportMedia(image_path)
+    if not media_items:
         raise Exception(f"Couldn't import image: {image_path}")
-    mediaItem = mediaItems[0]
-    # mediaItem[0].SetClipProperty("Duration", "00:00:02:00")
+    media_item = media_items[0]
+    # media_item[0].SetClipProperty("Duration", "00:00:02:00")
 
     # Добавляем клип в timeline
-    mediaPool.AppendToTimeline(mediaItem)
-    merge = mergeTextAndImage(image_text, timeline, textYPos)
+    media_pool.AppendToTimeline(media_item)
+    merge = merge_text_and_image(image_text, timeline, text_y_pos)
 
     return merge
 
 
-def process_images(folder_path, mediaPool):
-    timeline = mediaPool.CreateEmptyTimeline("PhotosByMonth")
+def process_images(folder_path, media_pool):
+    timeline = media_pool.CreateEmptyTimeline("PhotosByMonth")
 
     # Получаем список файлов изображений из папки
     image_extensions = ('.jpg', '.jpeg', '.png', '.tiff', '.bmp')
@@ -144,25 +144,25 @@ def process_images(folder_path, mediaPool):
 
             image_path = create_black_image()
             image_text = month
-            title_clip = process_image(image_path, image_text, mediaPool, timeline, 0.5)
+            title_clip = process_image(image_path, image_text, media_pool, timeline, 0.5)
 
             if not title_clip:
                 raise Exception(f"Failed to create title for {month}")
 
         image_path = os.path.join(folder_path, image_file)
         image_text = os.path.splitext(image_file)[0]
-        process_image(image_path, image_text, mediaPool, timeline, 0.2)
+        process_image(image_path, image_text, media_pool, timeline, 0.2)
 
     print("Processing complete!")
 
 
 def process_image_folder(folder_path):
     # Инициализация Resolve
-    projectManager = resolve.GetProjectManager()
-    project = projectManager.GetCurrentProject()
-    mediaPool = project.GetMediaPool()
+    project_manager = resolve.GetProjectManager()
+    project = project_manager.GetCurrentProject()
+    media_pool = project.GetMediaPool()
 
-    process_images(folder_path, mediaPool)
+    process_images(folder_path, media_pool)
 
     # temp_black = create_black_image()
     # os.remove(temp_black)
