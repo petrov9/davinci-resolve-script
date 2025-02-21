@@ -42,33 +42,27 @@ def create_black_image() -> str:
 
 def get_image_date_from_filename(image_path):
     """Извлекает дату из названия файла изображения."""
-    try:
-        filename = os.path.basename(image_path)  # Получаем только имя файла
-        match = re.search(r"(\d{1,2})\s+(\w+)", filename)  # Ищем дату в формате "ДД месяц"
-        if match:
-            day = int(match.group(1))
-            month_name = match.group(2)
+    filename = os.path.basename(image_path)  # Получаем только имя файла
+    match = re.search(r"(\d{1,2})\s+(\w+)", filename)  # Ищем дату в формате "ДД месяц"
+    if match:
+        day = int(match.group(1))
+        month_name = match.group(2)
 
-            # Словарь для преобразования названия месяца в номер
-            month_dict = {
-                "янв": 1, "фев": 2, "мар": 3, "апр": 4, "май": 5, "июн": 6,
-                "июл": 7, "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12
-            }
-            month = month_dict.get(month_name.lower())  # Получаем номер месяца
+        # Словарь для преобразования названия месяца в номер
+        month_dict = {
+            "янв": 1, "фев": 2, "мар": 3, "апр": 4, "май": 5, "июн": 6,
+            "июл": 7, "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12
+        }
+        month = month_dict.get(month_name.lower())  # Получаем номер месяца
 
-            if month:
-                year = datetime.now().year  # Получаем текущий год
-                date_obj = datetime(year, month, day)
-                return date_obj
-            else:
-                print(f"Некорректное название месяца: {month_name}")
-                return None
+        if month:
+            year = datetime.now().year  # Получаем текущий год
+            date_obj = datetime(year, month, day)
+            return date_obj
         else:
-            print(f"Формат названия файла не соответствует ожидаемому: {filename}")
-            return None
-    except Exception as e:
-        print(f"Ошибка при обработке файла: {e}")
-        return None
+            raise Exception(f"Некорректное название месяца: {month_name}")
+    else:
+        raise Exception(f"Формат названия файла не соответствует ожидаемому: {filename}")
 
 
 def mergeTextAndImage(text, timeline, clip, textYPos):
@@ -107,8 +101,7 @@ def create_month_title_clip(timeline, mediaPool, month_name):
     temp_black = create_black_image()
     mediaItem = mediaPool.ImportMedia(temp_black)
     if not mediaItem:
-        print(f"Couldn't import image: {temp_black}")
-        return
+        raise Exception(f"Couldn't import image: {temp_black}")
 
     # mediaItem.SetClipDuration(2 * 24)
 
@@ -133,8 +126,7 @@ def process_image(image_file, mediaPool, timeline):
     # Импортируем изображение
     mediaItem = mediaPool.ImportMedia(image_path)
     if not mediaItem:
-        print(f"Couldn't import image: {image_path}")
-        return
+        raise Exception(f"Couldn't import image: {image_path}")
 
     # mediaItem[0].SetClipProperty("Duration", "48")
     # mediaItem[0].SetClipProperty("Duration", "00:00:02:00")
@@ -160,8 +152,7 @@ def process_images(folder_path, mediaPool):
     image_extensions = ('.jpg', '.jpeg', '.png', '.tiff', '.bmp')
     image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(image_extensions)]
     if not image_files:
-        print(f"No images found in {folder_path}")
-        return
+        raise Exception(f"No images found in {folder_path}")
 
     # Сортируем файлы по дате
     image_files_with_dates = []
@@ -190,8 +181,7 @@ def process_images(folder_path, mediaPool):
             # Создаем заголовок месяца
             title_clip = create_month_title_clip(timeline, mediaPool, month)
             if not title_clip:
-                print(f"Failed to create title for {month}")
-                continue
+                raise Exception(f"Failed to create title for {month}")
 
         process_image(image_file, mediaPool, timeline)
 
@@ -217,8 +207,8 @@ def process_image_folder(folder_path):
 
     # print("Продолжительность всех изображений в Media Pool установлена на", defaultDuration, "секунды.")
 
-    temp_black = create_black_image()
-    os.remove(temp_black)
+    #temp_black = create_black_image()
+    #os.remove(temp_black)
 
 
 # Пример использования:
