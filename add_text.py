@@ -78,30 +78,33 @@ def merge_text_and_image(text, timeline, text_y_pos):
     # Получаем MediaIn node
     media_in = comp.ActiveTool()
 
+    # Добавляем Background
+    background = comp.AddTool("Background")
+    # Добавляем Transform и связываем с Background
+    transform = comp.AddTool("Transform")
+    transform.Center = (0.5, 0.2)
+    transform.Size = 0.8
+    transform.Aspect = 0.2
+    transform.Input = background.Output
+
+    # Добавляем MediaIn и Transform к Merge node
+    merge1 = comp.AddTool("Merge")
+    merge1.Blend = 0.5
+    merge1.Background = media_in.Output
+    merge1.Foreground = transform.Output
+
     # Добавляем Text+ node
     text_plus = comp.AddTool("TextPlus")
     text_plus.StyledText = text
     text_plus.FontSize = 50
     text_plus.Center = (0.5, text_y_pos)  # Текст внизу
 
-    # Добавляем Merge node
-    merge1 = comp.AddTool("Merge")
-    merge1.Background = media_in.Output
-    merge1.Foreground = text_plus.Output
-
-    # Добавляем Rectangle
-    # rectangle = comp.AddTool("Rectangle")
-
-    # Добавляем Background и связываем с rectangle
-    background = comp.AddTool("Background")
-    # background.Input = rectangle.Output
-
-    # К merge1 добавляем merge2
+    # Добавляем Merge1 и TextPlus к Merge2
     merge2 = comp.AddTool("Merge")
     merge2.Background = merge1.Output
-    merge2.Foreground = background.Output
+    merge2.Foreground = text_plus.Output
 
-    # Подключаем к MediaOut
+    # Добавляем Merge2 к MediaOut
     media_out = comp.FindTool("MediaOut1")
     if media_out:
         media_out.Input = merge2.Output
