@@ -1,8 +1,8 @@
 import os
 import re
 from datetime import datetime
-
 from PIL import Image
+from python_get_resolve import GetResolve
 
 # Словарь для перевода месяцев
 MONTHS_RU = {
@@ -70,6 +70,7 @@ def merge_text_and_image(text, timeline, text_y_pos):
     # Создаем Fusion композицию для фото
     clip = timeline.GetItemListInTrack("video", 1)[-1]
     timeline.CreateFusionClip([clip], 2.0)
+    resolve = GetResolve()
     fu = resolve.Fusion()
     resolve.OpenPage('Fusion')
     comp = fu.GetCurrentComp()
@@ -118,6 +119,12 @@ def process_image(image_path, image_text, media_pool, timeline, text_y_pos):
         raise Exception(f"Couldn't import image: {image_path}")
     media_item = media_items[0]
     # media_item[0].SetClipProperty("Duration", "00:00:02:00")
+    # clip_info = {
+    #     "mediaPoolItem": media_item,
+    #     "startFrame": 0,
+    #     "endFrame": 24,
+    # }
+    # media_pool.AppendToTimeline([clip_info])
 
     # Добавляем клип в timeline
     media_pool.AppendToTimeline(media_item)
@@ -170,6 +177,7 @@ def process_images(folder_path, media_pool):
 
 def process_image_folder(folder_path):
     # Инициализация Resolve
+    resolve = GetResolve()
     project_manager = resolve.GetProjectManager()
     project = project_manager.GetCurrentProject()
     media_pool = project.GetMediaPool()
@@ -181,6 +189,7 @@ def process_image_folder(folder_path):
 
 
 # Нужно руками устанавливать стандартную длительность статического кадра через UI Davinci Resolve
+# В Davinci Resolve STUDIO (именно STUDIO) нужно включить разрешение на использование внешних скриптов
 # Пример использования:
 init_folder_path = "D:/итоги года/2021-2023/2023/test"  # Укажите путь к вашей папке с фотографиями
 process_image_folder(init_folder_path)
