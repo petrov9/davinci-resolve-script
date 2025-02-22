@@ -51,7 +51,7 @@ def get_image_date_from_filename(image_path):
 
         # Словарь для преобразования названия месяца в номер
         month_dict = {
-            "янв": 1, "фев": 2, "мар": 3, "апр": 4, "май": 5, "июн": 6,
+            "янв": 1, "фев": 2, "мар": 3, "апр": 4, "мая": 5, "июн": 6,
             "июл": 7, "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12
         }
         month = month_dict.get(month_name.lower())  # Получаем номер месяца
@@ -144,7 +144,13 @@ def process_images(folder_path, media_pool):
 
     # Получаем список файлов изображений из папки
     image_extensions = ('.jpg', '.jpeg', '.png', '.tiff', '.bmp')
-    image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(image_extensions)]
+    image_files = []
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith(image_extensions):
+                print(os.path.join(root, file))
+                image_files.append(os.path.join(root, file))
+
     if not image_files:
         raise Exception(f"No images found in {folder_path}")
 
@@ -197,7 +203,7 @@ def process_image_folder(folder_path):
 # Нужно руками устанавливать стандартную длительность статического кадра через UI Davinci Resolve
 # В Davinci Resolve STUDIO (именно STUDIO) нужно включить разрешение на использование внешних скриптов
 # Пример использования:
-init_folder_path = "D:/итоги года/2021-2023/2023/test"  # Укажите путь к вашей папке с фотографиями
+init_folder_path = "D:/итоги года/2021-2023/2023"  # Укажите путь к вашей папке с фотографиями
 process_image_folder(init_folder_path)
 
 #docs:
