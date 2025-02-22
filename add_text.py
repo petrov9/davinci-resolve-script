@@ -181,7 +181,8 @@ def process_images(folder_path, media_pool):
                 raise Exception(f"Failed to create title for {month}")
 
         image_path = os.path.join(folder_path, image_file)
-        image_text = os.path.splitext(image_file)[0]
+        # Костыль
+        image_text = os.path.basename(image_file).lower().replace(".jpg", "")
         process_image(image_path, image_text, media_pool, timeline, 0.2)
 
     print("Processing complete!")
