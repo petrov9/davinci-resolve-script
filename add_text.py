@@ -78,21 +78,23 @@ def merge_text_and_image(text, timeline, text_y_pos):
     # Получаем MediaIn node
     media_in = comp.ActiveTool()
 
-    # Добавляем Background
-    background = comp.AddTool("Background")
-    # Добавляем Transform и связываем с Background
-    transform = comp.AddTool("Transform")
-    transform.Center = (0.5, 0.2)
-    transform.UseSizeAndAspect = False
-    transform.XSize = 0.8
-    transform.YSize = 0.2
-    transform.Input = background.Output
+    # Добавляем Rectangle
+    rectangle = comp.AddTool("RectangleMask")
+    rectangle.Center = (0.5, 0.2)
+    rectangle.CornerRadius = 0.35
+    # На глаз определил что один символ покрывается размером 0.029
+    rectangle.Width = 0.029 * len(text)
+    rectangle.Height = 0.15
 
-    # Добавляем MediaIn и Transform к Merge node
+    # Добавляем Rectangle к Background
+    background = comp.AddTool("Background")
+    background.EffectMask = rectangle.Mask
+
+    # Добавляем MediaIn и Background к Merge node
     merge1 = comp.AddTool("Merge")
     merge1.Blend = 0.5
     merge1.Background = media_in.Output
-    merge1.Foreground = transform.Output
+    merge1.Foreground = background.Output
 
     # Добавляем Text+ node
     text_plus = comp.AddTool("TextPlus")
@@ -197,3 +199,7 @@ def process_image_folder(folder_path):
 # Пример использования:
 init_folder_path = "D:/итоги года/2021-2023/2023/test"  # Укажите путь к вашей папке с фотографиями
 process_image_folder(init_folder_path)
+
+#docs:
+# https://extremraym.com/cloud/resolve-scripting-doc/#overview
+# https://wheheohu.github.io/bmd_doc/ResolveAPI/intro
