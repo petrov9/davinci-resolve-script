@@ -84,16 +84,28 @@ def merge_text_and_image(text, timeline, text_y_pos):
     text_plus.Center = (0.5, text_y_pos)  # Текст внизу
 
     # Добавляем Merge node
-    merge = comp.AddTool("Merge")
-    merge.Background = media_in.Output
-    merge.Foreground = text_plus.Output
+    merge1 = comp.AddTool("Merge")
+    merge1.Background = media_in.Output
+    merge1.Foreground = text_plus.Output
+
+    # Добавляем Rectangle
+    # rectangle = comp.AddTool("Rectangle")
+
+    # Добавляем Background и связываем с rectangle
+    background = comp.AddTool("Background")
+    # background.Input = rectangle.Output
+
+    # К merge1 добавляем merge2
+    merge2 = comp.AddTool("Merge")
+    merge2.Background = merge1.Output
+    merge2.Foreground = background.Output
 
     # Подключаем к MediaOut
     media_out = comp.FindTool("MediaOut1")
     if media_out:
-        media_out.Input = merge.Output
+        media_out.Input = merge2.Output
 
-    return merge
+    return merge2
 
 
 def process_image(image_path, image_text, media_pool, timeline, text_y_pos):
