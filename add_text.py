@@ -83,8 +83,9 @@ def merge_text_and_image(text, timeline, text_y_pos):
     # Добавляем Transform и связываем с Background
     transform = comp.AddTool("Transform")
     transform.Center = (0.5, 0.2)
-    transform.Size = 0.8
-    transform.Aspect = 0.2
+    transform.UseSizeAndAspect = False
+    transform.XSize = 0.8
+    transform.YSize = 0.2
     transform.Input = background.Output
 
     # Добавляем MediaIn и Transform к Merge node
